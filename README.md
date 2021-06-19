@@ -63,3 +63,71 @@ describe("テストの名前", () => {
 ## Step2. UserEvent テスト
 
 ユーザーが起こすイベントを再現するテストを書く
+
+### Import
+
+```js
+import React from "react";
+import { render, screen, cleanup } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import RenderInput from "./RenderInput";
+```
+
+- `userEvent`: ユーザーのイベントをシミュレーションするもの。
+
+### cleanup 関数の役割
+
+1 つのファイル内で複数のテスト(`it`)を記述する場合、以下を記述する。
+
+```zsh
+afterEach(() => cleanup());
+```
+
+各テストでのレンダリングを毎回`cleanup`することで、テスト間で副作用が起きるなど  
+テスト同士が干渉してしまうのを防ぐもの。
+
+### Example
+
+```js
+describe("Input form onChange event", () => {
+  it("Should update input value correctry", () => {
+    render(<RenderInput />);
+    const inputValue = screen.getByPlaceholderText("Enter");
+    userEvent.type(inputValue, "test");
+    // type: ユーザーのタイピングによるイベント, 第1引数: イベントを起こす要素, 第2引数: 入力する値
+    expect(inputValue.value).toBe("test");
+    // inputValue.value = 要素.属性, 'test'がvalue属性に入っているかを判定する
+  });
+});
+```
+
+### 条件分岐のテスト
+
+```js
+describe("Console button conditionally triggered", () => {
+  it("Should not trigger output function", () => {
+    const outputConsole = jest.fn(); // モック関数の定義
+    render(<RenderInput outputConsole={outputConsole} />);
+    userEvent.click(screen.getByRole("button"));
+    // ユーザーのクリックによるイベント。引数にターゲット要素を取る。
+    expect(outputConsole).not.toHaveBeenCalled();
+    // 定義したモック関数が呼び出されないことを判定する
+  });
+});
+```
+
+```js
+it("Should trigger output function", () => {
+  const outputConsole = jest.fn();
+  render(<RenderInput outputConsole={outputConsole} />);
+  const inputValue = screen.getByPlaceholderText("Enter");
+  userEvent.type(inputValue, "test"); // タイピングのイベントを用いて、入力した状態を作っておく
+  userEvent.click(screen.getByRole("button"));
+  expect(outputConsole).toHaveBeenCalledTimes(1);
+  // 定義したモック関数が「1回」呼び出されることを判定する
+});
+```
+
+## step3. List Component テスト
+
+`map`メソッドによりリスト化されたコンポーネントをテストする。
