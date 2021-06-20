@@ -154,3 +154,64 @@ it("Should render list item correctly", () => {
   expect(frameworkItems).toEqual(dummyItems);
 });
 ```
+
+## Step4. useEffect テスト
+
+### Install
+
+外部の API にアクセスする場合は、`axios` をインストールしておく。
+
+```zsh
+yarn add axios
+```
+
+### Example
+
+#### component
+
+```js
+import React from "react";
+import axios from "axios";
+
+const UseEffectRender = () => {
+  const [user, setUser] = React.useState(null);
+  const fetchJSON = async () => {
+    const res = await axios.get("https://jsonplaceholder.typicode.com/users/1");
+    return res.data;
+  };
+  React.useEffect(() => {
+    const fetchUser = async () => {
+      const user = await fetchJSON();
+      setUser(user);
+    };
+    fetchUser();
+  }, []);
+
+  return (
+    <div>
+      {user ? (
+        <p>
+          I am {user.username} : {user.email}
+        </p>
+      ) : null}
+    </div>
+  );
+};
+```
+
+#### test
+
+```js
+describe("useEffect rendering", () => {
+  // 非同期処理のテストを行う場合は、async を使う。
+  it("Should render only after async function resolved", async () => {
+    render(<UseEffectRender />);
+    expect(screen.queryByText(/I am/)).ToBeNull();
+    // 検索文字列をスラッシュで囲むことで正規化し、一部の文字列として対象にできる。
+    expect(await screen.findByText(/I am/)).toBeInTheDocument();
+    // await を使うのにあわせ、この場合はfindByTextを用いる。
+  });
+});
+```
+
+- `findBy~`: 非同期処理が終わるまで待った上で要素の探索をしてくれる(待ち時間: 4s)。
