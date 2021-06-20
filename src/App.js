@@ -3,11 +3,18 @@ import logo from './logo.svg';
 import { Counter } from './features/counter/Counter';
 import './App.css';
 import RenderInput from './RenderInput';
+import FrameworkList from './FrameworkList';
 
 function App() {
   const output = (text) => {
     console.log(text);
   };
+
+  const data = [
+    { id: 1, item: 'React' },
+    { id: 2, item: 'Angular' },
+    { id: 3, item: 'Vue' },
+  ];
 
   return (
     <div className="App">
@@ -15,6 +22,7 @@ function App() {
         <img src={logo} className="App-logo" alt="logo" />
         <Counter />
         <RenderInput outputConsole={output} />
+        <FrameworkList frameworks={data} />
         <p>
           Edit <code>src/App.js</code> and save to reload.
         </p>

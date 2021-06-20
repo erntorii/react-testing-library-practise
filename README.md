@@ -131,3 +131,26 @@ it("Should trigger output function", () => {
 ## step3. List Component テスト
 
 `map`メソッドによりリスト化されたコンポーネントをテストする。
+
+### Example
+
+```js
+it("Should render list item correctly", () => {
+  // App.js のデータセットを使用するのではなく、テスト用のダミーデータを作成する。
+  const dummyData = [
+    { id: 1, item: "React dummy" },
+    { id: 2, item: "Angular dummy" },
+    { id: 3, item: "Vue dummy" },
+  ];
+  // 作成したテスト用のダミーデータを props で渡す。
+  render(<FrameworkList frameworks={dummyData} />);
+  // 画面に表示される<li>要素からテキストデータを取り出し、配列化する。
+  const frameworkItems = screen
+    .getAllByRole("listitem")
+    .map((ele) => ele.textContent);
+  // 上記と対になる様に item の配列になるようにテストデータの方でも作成する。
+  const dummyItems = dummyData.map((ele) => ele.item);
+  // 上で作成した2つの配列が、同一となるか判定するテストを書く。
+  expect(frameworkItems).toEqual(dummyItems);
+});
+```
