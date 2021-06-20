@@ -403,3 +403,31 @@ it("Should increment by 100 * payload value with mode 1", () => {
 ```
 
 ## extraReducer テスト
+
+### Import
+
+```js
+import reducer, {
+  fetchDummy,
+} from "../src/features/customCounter/customCounterSlice";
+```
+
+- `reducer` 本体と、extraReducer テストの場合は、テストする対象の**非同期関数** をインポートする。
+
+### Example
+
+```js
+describe("extraReducers", () => {
+  // state の初期値を定義。
+  const initialState = {
+    mode: 0,
+    value: 0,
+  };
+  it("Should output 100 + payload when fulfilled", () => {
+    // action のtype は、<非同期関数>.<成功or失敗メソッド>.type で取り出すことができる。
+    const action = { type: fetchDummy.fulfilled.type, payload: 5 };
+    const state = reducer(initialState, action);
+    expect(state.value).toEqual(105);
+  });
+});
+```
