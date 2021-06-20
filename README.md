@@ -215,3 +215,103 @@ describe("useEffect rendering", () => {
 ```
 
 - `findBy~`: 非同期処理が終わるまで待った上で要素の探索をしてくれる(待ち時間: 4s)。
+
+## API Mock (Mock Server Worker) コンポーネント
+
+外部 API を使うのではなく、テスト用の API として、モックサーバをテスト上に作っていく。
+
+### Install
+
+```zsh
+yarn add msw --save-dev
+```
+
+### Import
+
+```js
+import React from "react";
+import { render, screen, cleanup } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+
+import { rest } from "msw";
+import { setupServer } from "msw/node";
+```
+
+### Setup
+
+#### 擬似的な モックサーバ(API エンドポイント)の定義
+
+```js
+const server = setupServer(
+  rest.get("https://jsonplaceholder.typicode.com/users/1", (req, res, ctx) => {
+    return res(ctx.status(200), ctx.json({ username: "Bred dummy" }));
+  })
+);
+```
+
+- 第 1 引数: API エンドポイントのパスを定義する
+- 第 2 引数: アロー関数、引数に以下
+  - `req`: リクエスト。第 1 引数で定義したパスに検索などのクエリを追記でき、パラメータへのアクセスなどができる。今回は使わない。
+  - `res`: レスポンス。今回は、`ctx.status` でレスポンスコードを定義している(通信が成功した場合のレスポンスを作っている)。
+  - `cts`: コンテキスト。`ctx.json` により、レスポンスで返す JSON オブジェクトの内容を定義する。
+
+#### サーバの起動/終了 と cleanup
+
+```js
+beforeAll(() => server.listen());
+afterEach(() => {
+  server.resetHandlers();
+  cleanup();
+});
+afterAll(() => server.close());
+```
+
+- `beforeAll`: テストファイルの実行時、最初に 1 度だけ実行される。
+- `server.listen()`: モックサーバの起動。
+- `afterEach`: 各テストが終わる際に毎回実行される。
+- `server.resetHandlers()`: 複数テストを記述する際は、これを実行する決まりになっている。
+- `afterAll`: テストファイルの実行時、最後に 1 度だけ実行される。
+- `server.close()`: モックサーバを閉じる。
+
+### Example
+
+#### API 取得に成功した場合
+
+```js
+describe("Mocking API", () => {
+  it("[Fetch success]Should display fetched data correctry and button disable", async () => {
+    render(<MockServer />);
+    // ユーザによるボタンクリックイベントが発生したら...
+    userEvent.click(screen.getByRole("button"));
+    // ...画面にAPIデータが表示されるのを待って(findByText)から、画面に存在するかを判定。
+    expect(await screen.findByText("Bred dummy")).toBeInTheDocument();
+    // API読み込みが成功したらボタンが無効化になるため、disabled属性が<button>に存在するかを判定。
+    expect(screen.getByRole("button")).toHaveAttribute("disabled");
+  });
+});
+```
+
+#### API 取得に失敗した場合
+
+```js
+it("[Fetch failure]Should display error msg, no render heading and button abled", async () => {
+  server.use(
+    rest.get(
+      "https://jsonplaceholder.typicode.com/users/1",
+      (req, res, ctx) => {
+        return res(ctx.status(404));
+      }
+    )
+  );
+  render(<MockServer />);
+  userEvent.click(screen.getByRole("button"));
+  expect(await screen.findByTestId("error")).toHaveTextContent(
+    "Fetching Failed !"
+  );
+  expect(screen.queryByRole("heading")).toBeNull();
+  // disabled属性が<button>に存在しないかを判定。
+  expect(screen.getByRole("button")).not.toHaveAttribute("disabled");
+});
+```
+
+- `server.use`: モックサーバの内容を書き換えることができる。
