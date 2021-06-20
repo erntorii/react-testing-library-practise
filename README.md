@@ -315,3 +315,91 @@ it("[Fetch failure]Should display error msg, no render heading and button abled"
 ```
 
 - `server.use`: モックサーバの内容を書き換えることができる。
+
+## Reducer テスト
+
+### Import
+
+```js
+import reducer, {
+  increment,
+  incrementByAmount,
+} from "../src/features/customCounter/customCounterSlice";
+```
+
+- `reducer` 本体と、テストする対象の reducer をインポートしておく
+
+### Example
+
+#### case1. increment
+
+```js
+describe("Reducer of ReduxToolKit", () => {
+  describe("increment action", () => {
+    // テスト用に state の初期値を設定しておく
+    let initialState = {
+      mode: 0,
+      value: 1,
+    };
+    it("Should increment by 1 with mode 0", () => {
+      // <action名>.type で action の type を取り出せる。
+      const action = { type: increment.type };
+      // 取り出した action type を action として渡す。
+      const state = reducer(initialState, action);
+      // state.value が想定通り +1 されているかの判定。
+      expect(state.value).toEqual(2);
+    });
+  });
+});
+```
+
+- Reducer の役割
+  - 第 1 引数: state の初期値、第 2 引数: action を渡すことで、新しい state を返す。
+
+#### case2. 別の mode でもテストする
+
+```js
+it("Should increment by 100 with mode 1", () => {
+  // let で設定してある変数を利用し、mode を 1 に上書きする。
+  initialState = {
+    mode: 1,
+    value: 1,
+  };
+  const action = { type: increment.type };
+  const state = reducer(initialState, action);
+  expect(state.value).toEqual(101);
+});
+```
+
+#### case3. incrementByAmount
+
+```js
+  describe('incrementByAmount action', () => {
+    // state の初期値を定義。
+    let initialState = {
+      mode: 0,
+      value: 1,
+    };
+    it('Should increment by payload value with mode 0', () => {
+      // action.payload を取る action に関しては、payload で任意の値を設定することができる。
+      const action = { type: incrementByAmount.type, payload: 3 };
+      const state = reducer(initialState, action);
+      expect(state.value).toEqual(4);
+    });
+```
+
+#### case4. 別の mode でもテストする
+
+```js
+it("Should increment by 100 * payload value with mode 1", () => {
+  initialState = {
+    mode: 1,
+    value: 1,
+  };
+  const action = { type: incrementByAmount.type, payload: 3 };
+  const state = reducer(initialState, action);
+  expect(state.value).toEqual(301);
+});
+```
+
+## extraReducer テスト
