@@ -431,3 +431,24 @@ describe("extraReducers", () => {
   });
 });
 ```
+
+## Integration テスト
+
+Redux の ~~~ と、React コンポーネントを結びつけたテストを行う。
+
+### 小技
+
+```js
+        <button onClick={() => dispatch(incrementByAmount(number | 0))}>
+          IncrementByAmount
+        </button>
+        <input
+          type="text"
+          placeholder="Enter"
+          value={number}
+          onClick={(e) => setNumber(e.target.value)}
+        />
+```
+
+- number 以外の文字列等がインプットで渡された場合は、強制的に 0 を返すようにする
+  - `number | 0`: number が false の場合、null を返す
