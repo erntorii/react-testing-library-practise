@@ -434,7 +434,8 @@ describe("extraReducers", () => {
 
 ## Integration テスト
 
-Redux の ~~~ と、React コンポーネントを結びつけたテストを行う。
+Redux の各機能と、React コンポーネントを結びつけたテストを行う。  
+Integration テストを行う場合、テスト用の store を新たに作っていく必要がある。
 
 ### 小技
 
@@ -452,3 +453,53 @@ Redux の ~~~ と、React コンポーネントを結びつけたテストを行
 
 - number 以外の文字列等がインプットで渡された場合は、強制的に 0 を返すようにする
   - `number | 0`: number が false の場合、null を返す
+
+### Import
+
+```js
+import React from "react";
+import { render, screen, cleanup } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+
+import { Provider } from "react-redux";
+import Redux from "./Redux";
+import { configureStore } from "@reduxjs/toolkit";
+import customCounterReducer from "../src/features/customCounter/customCounterSlice";
+```
+
+### テスト用 store の作成
+
+- 書き方は、`store.js` とほぼ同様。
+- `beforeEach` を用いて、テストケースが毎回走る前に実行されるようにセットしておく。
+
+```js
+describe('Redux Integration Test', () => {
+  let store;
+  beforeEach(() => {
+    store = configureStore({
+      reducer: {
+        customCounter: customCounterReducer,
+      },
+    });
+  });
+  // ...
+```
+
+### テストの記述
+
+- テストしたい対象のコンポーネントを`<Provider>`タグで囲み、props に 作成しておいたテスト用 `store` を渡したものをレンダーしておく。
+
+```js
+it("Should display value with increment by 1 per click", () => {
+  render(
+    <Provider store={store}>
+      <Redux />
+    </Provider>
+  );
+  userEvent.click(screen.getByText("+"));
+  userEvent.click(screen.getByText("+"));
+  userEvent.click(screen.getByText("+"));
+  expect(screen.getByTestId("count-value")).toHaveTextContent(3);
+});
+// ...
+```
