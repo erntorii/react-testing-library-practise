@@ -629,3 +629,113 @@ describe("Redux Async API Mocking", () => {
     render (
     // ...
 ```
+
+## Custom Hook 作成手順
+
+### Import
+
+```js
+import { useState } from "react";
+```
+
+### 処理の記述
+
+```js
+export const useCounter = (initialCount) => {
+  const [count, setCount] = useState(initialCount);
+
+  const increment = () => {
+    setCount((count) => count + 1);
+  };
+  const decrement = () => {
+    setCount((count) => count - 1);
+  };
+  const double = () => {
+    setCount((count) => count * 2);
+  };
+  const triple = () => {
+    setCount((count) => count * 3);
+  };
+  const reset = () => {
+    setCount(0);
+  };
+
+  return { count, increment, decrement, double, triple, reset };
+};
+```
+
+## コンポーネントで Custom Hook を使用する
+
+### Import
+
+- 作成した Custom Hook をインポートする
+
+```js
+import { useCounter } from "./useCounter";
+```
+
+### 変数定義
+
+- return で定義した返り値を使用できるように、変数定義しておく。
+
+```js
+const CustomHooks= () => {
+  const { count, increment, decrement, double, triple, reset } = useCounter(3);
+  // ...
+```
+
+### return(view)の記述
+
+```js
+  // ...
+  return (
+    <div>
+      <p>{count}</p>
+      <button onClick={increment}>Increment</button>
+      <button onClick={decrement}>Decrement</button>
+      <button onClick={double}>Double</button>
+      <button onClick={triple}>Triple</button>
+      <button onClick={reset}>Reset</button>
+    </div>
+  );
+};
+```
+
+## Custom Hook テスト
+
+### テストに必要なライブラリのインストール
+
+```zsh
+yarn add @testing-library/react-hooks
+yarn add react-test-renderer
+```
+
+### Import
+
+```js
+import { useCounter } from "./useCounter";
+import { act, renderHook } from "@testing-library/react-hooks";
+import { cleanup } from "@testing-library/react";
+
+afterEach(() => cleanup());
+```
+
+### テスト記述
+
+- @testing-library の `renderHook` の中に、Custom Hook を格納し、  
+  返り値として @testing-library の`result` で受け取る。
+- Custom Hook で定義した変数や関数は、 `result.current.~~~` として使用することができる。
+- Custom Hook で定義した関数を実行する場合は、@testing-libarary の `act` 関数の中に記述する。
+
+```js
+describe("useCounter custom Hook", () => {
+  it("Should increment by 1", () => {
+    const { result } = renderHook(() => useCounter(3));
+    expect(result.current.count).toBe(3);
+    act(() => {
+      result.current.increment();
+    });
+    expect(result.current.count).toBe(4);
+  });
+});
+```
