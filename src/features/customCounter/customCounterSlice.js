@@ -70,8 +70,11 @@ export const customCounterSlice = createSlice({
     });
     builder.addCase(fetchJSON.fulfilled, (state, action) => {
       state.username = action.payload;
-    })
-  }
+    });
+    builder.addCase(fetchJSON.rejected, (state, action) => {
+      state.username = 'anonymous';
+    });
+  },
 });
 
 export const { increment, decrement, incrementByAmount } = customCounterSlice.actions;
